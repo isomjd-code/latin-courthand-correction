@@ -1,5 +1,7 @@
 # Claude-Based Transkribus Correction Script (Single Document Version)
 
+Developed by Joshua David Isom
+
 This repository contains a Python script designed to automate the correction of Handwritten Text Recognition (HTR) results in [Transkribus](https://transkribus.ai/). The script processes a single specified document, using Anthropic's Claude 3 Sonnet model to review and correct the transcription line by line.
 
 The core of this script is a "two-call" verification method. For each chunk of text, it calls the Claude API twice to generate two independent transcriptions. It then compares these versions to identify and flag uncertain lines, ensuring a higher degree of confidence in the final output.
