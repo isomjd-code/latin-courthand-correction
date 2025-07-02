@@ -2,62 +2,59 @@
 
 Developed by Joshua David Isom
 
-This repository contains a suite of Python scripts designed to automate the processing of medieval legal documents from [Transkribus](https://transkribus.ai/). The tools leverage Anthropic's Claude 3.7 Sonnet model to perform advanced text correction and data extraction tasks.
+This repository contains a suite of Python scripts and a recommended workflow designed to process medieval legal documents from [Transkribus](https://transkribus.ai/). The tools leverage a state-of-the-art Handwritten Text Recognition (HTR) model and Anthropic's Claude 3.7 Sonnet to move from raw manuscript image to fully analyzed, structured data.
 
-The repository includes two primary tools, each designed for a specific purpose and intended for use in **Google Colab**:
+This guide outlines a complete, three-step workflow:
+1.  **Initial Transcription:** Use a specialized, public HTR model in Transkribus to generate a highly accurate baseline transcription.
+2.  **Transcription Refinement:** Use the `latin_courthand_correction.ipynb` script to perform a final, AI-powered polishing pass on the HTR output.
+3.  **Case Extraction & Analysis:** Use the `latin_case_extractor.ipynb` script on the polished text to segment it into legal cases, extract metadata, and generate translations.
 
-1.  **`latin_courthand_correction.ipynb`**: A script for correcting Handwritten Text Recognition (HTR) results. It reviews a document line-by-line, corrects the transcription, and uploads the improved version back to Transkribus.
-2.  **`latin_case_extractor.ipynb`**: A script for analyzing a corrected transcription. It segments the text into individual legal cases and, for each case, extracts structured metadata, expands abbreviated Latin, and provides an English translation.
+All scripts are designed for easy use in **Google Colab**.
 
 ## ✨ Features
 
-### 1. HTR Correction (`latin_courthand_correction.ipynb`)
-
-*   **AI-Powered Correction:** Leverages the advanced multimodal capabilities of Anthropic's Claude models to read and transcribe from the document image.
-*   **Chunk-Based Analysis:** Breaks the document image into smaller, manageable chunks for more accurate, focused analysis by the LLM.
-*   **Two-Call Verification:** Calls the API twice for each chunk and compares the results to measure the model's confidence and flag inconsistencies.
-*   **Intelligent Image Handling:** Automatically crops, rotates, and annotates image chunks with line numbers to provide the best possible context to the model.
-*   **Uncertainty Flagging:** Lines where the two AI transcriptions differ significantly are automatically tagged as `unclear` in the output PAGE XML.
+### 1. HTR Correction Script (`latin_courthand_correction.ipynb`)
+*   **AI-Powered Correction:** Leverages the advanced multimodal capabilities of Anthropic's Claude models to read and correct transcriptions from the document image.
+*   **Two-Call Verification:** Calls the API twice for each text segment and compares the results to measure the model's confidence and flag inconsistencies.
+*   **Intelligent Image Handling:** Automatically crops, rotates, and annotates image chunks to provide the best possible context to the model.
 *   **Direct Transkribus Integration:** Writes the final, corrected transcription and metadata directly back to your Transkribus document, creating a new version.
 
-### 2. Case Extraction & Analysis (`latin_case_extractor.ipynb`)
-
+### 2. Case Extraction & Analysis Script (`latin_case_extractor.ipynb`)
 *   **AI-Powered Case Segmentation:** Intelligently identifies the boundaries of individual legal cases within a continuous text transcription.
 *   **Structured Metadata Extraction:** For each case, it extracts key details like plaintiffs, defendants, plea type, county, and monetary values.
 *   **Latin Expansion:** Automatically expands common medieval Latin abbreviations into their full forms (e.g., `p'd'co` -> `predicto`).
 *   **English Translation:** Provides a clear, modern English translation of the expanded Latin text.
 *   **Flexible Output:** Formats the final, structured data into your choice of **JSON**, **Wiki Markup**, or **Markdown**.
 
-## ⚙️ How It Works
+## ⚙️ The Recommended Workflow: From Image to Analysis
 
-### Workflow 1: HTR Correction
+For the best results, follow this three-step process.
 
-The `latin_courthand_correction.ipynb` script follows a linear, step-by-step workflow:
+### Step 1: Generate a High-Quality Baseline with the HTR Model
 
-1.  **Authentication:** Securely logs into Transkribus and initializes the Anthropic API client.
-2.  **Data Fetching:** Downloads the page image and the latest PAGE XML (containing HTR text and line coordinates) for the specified document.
-3.  **Chunk Processing Loop:** Iterates through the document's text lines in chunks. For each chunk, it:
-    a. **Prepares the Image:** Crops, annotates with line numbers, and rotates the image chunk for optimal AI analysis.
-    b. **Calls Claude (x2):** Sends the prepared image chunk and HTR text to the Claude API twice to get two independent transcriptions.
-4.  **Analysis & Consolidation:**
-    *   Compares the two full transcriptions (Run A and Run B) to identify and flag uncertain lines.
-    *   Selects the "best" version for each line by comparing both AI outputs to the original HTR text.
-5.  **XML Modification & Upload:** Updates the PAGE XML with the corrected text and `unclear` tags, then uploads it back to Transkribus as a new version.
+Before using the Colab scripts, the recommended first step is to run your documents through the specialized public HTR model. This provides a fast, stable, and highly accurate baseline transcription directly within Transkribus.
 
-### Workflow 2: Case Extraction
+*   **Model Name:** `Latin Court Hand - KB27/795 (1460)`
+*   **How to Use:** In your Transkribus project, select the pages you want to transcribe and run the "Recognize" tool. Search for the model by name in the public models list.
+*   **Link to Model:** **[https://app.transkribus.org/models/public/text/latin-court-hand-kb27795-1460](https://app.transkribus.org/models/public/text/latin-court-hand-kb27795-1460)**
 
-The `latin_case_extractor.ipynb` script is designed to be run *after* you have a clean, corrected transcription (ideally from the first script).
+This step gives you a strong foundation and is more reproducible and cost-effective for large-scale transcription than using a live LLM for the initial pass.
 
-1.  **Authentication & Data Fetching:** Logs into Transkribus and downloads the latest PAGE XML for the specified document.
-2.  **Case Segmentation:** Sends the entire page's text to Claude with a prompt asking it to identify the start and end lines of each legal case.
-3.  **Case Processing Loop:** For each identified case, it:
-    a. **Collates Text:** Gathers the text lines belonging to that case.
-    b. **Calls Claude:** Sends the case text to the Claude API with a prompt asking for metadata extraction, Latin expansion, and English translation.
-4.  **Formatting Output:** Gathers the structured data from all cases and formats it into the user-specified output format (JSON, Wiki, or Markdown) before printing it to the console.
+### Step 2: Refine the Transcription with LLM Correction (`latin_courthand_correction.ipynb`)
+
+Once you have the baseline transcription from the HTR model, use this script for a final polishing pass to achieve near-perfect accuracy.
+
+*   **Purpose:** To correct any residual errors from the HTR model and produce a publication-quality text.
+*   **Process:** The script takes the HTR output, compares it against the manuscript image chunk-by-chunk using a live LLM, and uploads the corrected version back to Transkribus.
+
+### Step 3: Extract and Analyze Cases (`latin_case_extractor.ipynb`)
+
+With a fully corrected and polished transcription, this final script allows you to perform high-level analysis.
+
+*   **Purpose:** To transform the flat text into structured, analyzable data.
+*   **Process:** The script reads the corrected text, uses an LLM to identify case boundaries, and then extracts metadata, expands Latin, and translates each case. The results are printed in your chosen format.
 
 ## 🚀 Getting Started
-
-Both scripts are optimized for Google Colab. Follow these steps to run them.
 
 ### Prerequisites
 
@@ -67,36 +64,26 @@ Both scripts are optimized for Google Colab. Follow these steps to run them.
 
 ### Setup and Usage
 
-1.  **Open Google Colab:** Go to [colab.research.google.com](https://colab.research.google.com) and create a new notebook.
+1.  **Initial Transcription (in Transkribus):**
+    *   Open your project in Transkribus.
+    *   Select your pages and run the **`Latin Court Hand - KB27/795 (1460)`** HTR model on them.
 
-2.  **Set Up Secrets (Highly Recommended):** For security, do not paste your credentials directly into the code.
-    *   In your Colab notebook, click the **🔑 key icon** in the left sidebar.
+2.  **Set Up Colab Secrets:**
+    *   In a new Colab notebook, click the **🔑 key icon** in the left sidebar.
     *   Add the following three secrets:
         *   `TRANKRIBUS_USER` (Value: your Transkribus email)
         *   `TRANKRIBUS_PASSWORD` (Value: your Transkribus password)
-        *   `ANTHROPIC_API_KEY` (Value: your Anthropic API key, starting with `sk-ant-`)
+        *   `ANTHROPIC_API_KEY` (Value: your Anthropic API key)
 
-3.  **Copy the Code:**
-    *   For HTR correction, copy the entire content of `latin_courthand_correction.ipynb`.
-    *   For case extraction, copy the entire content of `latin_case_extractor.ipynb`.
-    *   Paste the chosen script's code into a single cell in your notebook.
+3.  **Run the Correction Script (Optional but Recommended):**
+    *   Copy the code from `latin_courthand_correction.ipynb` into a Colab cell.
+    *   Configure the `COLLECTION_ID` and `DOCUMENT_ID`.
+    *   Run the cell to polish the HTR transcription.
 
-4.  **Configure the Script:** In the script, locate the **"USER CONFIGURATION"** section and set the required values.
-    *   **For both scripts:**
-        ```python
-        # --- Document to Process ---
-        COLLECTION_ID = 2093054  # <<< --- YOUR COLLECTION ID --- >>>
-        DOCUMENT_ID = 9343917    # <<< --- THE SPECIFIC DOCUMENT ID YOU WANT TO PROCESS --- >>>
-        ```
-    *   **For `latin_case_extractor.ipynb` only:**
-        ```python
-        # --- Output Configuration ---
-        OUTPUT_FORMAT = 'wiki'  # Choose 'json', 'wiki', or 'markdown'
-        ```
-
-5.  **Run the Script:** Execute the cell by clicking the play button or pressing `Shift+Enter`.
-    *   The first time you run it, it will automatically install the required Python libraries.
-    *   You will see verbose output logging every step of the process.
+4.  **Run the Extraction Script:**
+    *   Copy the code from `latin_case_extractor.ipynb` into a new Colab cell (or the same notebook).
+    *   Configure the `COLLECTION_ID`, `DOCUMENT_ID`, and desired `OUTPUT_FORMAT`.
+    *   Run the cell to analyze the final text and get your structured output.
 
 ## 🔧 Configuration
 
