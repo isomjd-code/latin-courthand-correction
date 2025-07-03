@@ -2,7 +2,7 @@
 
 Developed by Joshua David Isom
 
-This repository contains a suite of Python scripts and a recommended workflow designed to process medieval legal documents from [Transkribus](https://transkribus.ai/). The tools leverage a state-of-the-art Handwritten Text Recognition (HTR) model and Anthropic's Claude 3.7 Sonnet to move from raw manuscript image to fully analyzed, structured data.
+This repository contains a suite of Python scripts and a recommended workflow designed to process medieval latin legal documents (CP40 and KB27) within [Transkribus](https://transkribus.ai/). The tools leverage a state-of-the-art Handwritten Text Recognition (HTR) model and Anthropic's Claude 3.7 Sonnet to move from raw manuscript image to fully analyzed, structured data.
 
 This guide outlines a complete, three-step workflow:
 1.  **Initial Transcription:** Use a specialized, public HTR model in Transkribus to generate a highly accurate baseline transcription.
